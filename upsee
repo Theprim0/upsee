@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Escribe un script que reciba por linea de comandos nombres
+# o direcciones IP de servidores. Este debe mostrar UPTIME del
+# ultimo minuto para cada uno de ellos. Si no pudiera el script
+# , debe distinguir entre un error producido porque la máquina no esté
+# disponible, o porque la máquina no tiene activo el ssh. El script recibirá
+# el usuario a traves de la opcion optativa "-u", si no se proporciona, se
+# tomará el nombre del usuario que actualmente ha iniciado sesión.
+# ejemplo: redes -u pepico 192.168.11.14 172.16.11.100
+
+if ! [[ $# > 0 ]]; then
+	echo "Uso: `basename $0` [-u usuario] (máquinas)"
+	echo "AYUDA:"
+	echo "  - [] Estas opciones son opcionales"
+	echo "  - () Estas opciones son obligatorias"
+	echo "EJEMPLOS:"
+	echo "  - `basename $0` -u admin 144.91.91.49 ..."
+	echo "  - `basename $0` 172.16.11.{1..50}"
+	echo "  - `basename $0` 192.168.1.5 marca.com 172.16.11.2"
+	exit 1
+elif [[ $( echo $1) == "-u" ]]; then
+	usuarioMenosU=$2
+	shift 2
+fi
+
+for maquina in $(echo $@); do
+	ping -w 1 $maquina &>/dev/null
+	if [[ $? -ne 0 ]]; then
+		echo
+		echo "Máquina $maquina no disponible"
+		echo
+	elif [[ $(echo `nmap -sT $maquina | grep ssh | cut -d" " -f 1`) == "22/tcp" ]]; then
+		echo
+		upeo=$(ssh ${usuarioMenosU:-$(whoami)}@$maquina uptime -p)
+		echo "$maquina lleva ... $upeo"
+		
+	else
+		echo "Máquina $maquina SSH NO DISPONIBLE"
+
+	fi
+
+done
+
+
+#tiempoUp=$(ssh 
