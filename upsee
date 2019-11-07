@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# Script que reciba por linea de comandos nombres
-# o direcciones IP de servidores. Este debe mostrar UPTIME del
-# ultimo minuto para cada uno de ellos. Si no pudiera el script
-# , debe distinguir entre un error producido porque la máquina no esté
-# disponible, o porque la máquina no tiene activo el ssh. El script recibirá
-# el usuario a traves de la opcion optativa "-u", si no se proporciona, se
-# tomará el nombre del usuario que actualmente ha iniciado sesión.
-# ejemplo: redes -u pepico 192.168.11.14 172.16.11.100
+# Script que recibe por linea de comandos nombres
+# o direcciones IP de servidores. Este muestra el UPTIME de la máquina
+# para cada una de las maquinas introducidas. Si no pudiera, será notificado 
+# entre un error producido porque la máquina no esté disponible, o porque la
+# máquina no tiene activo el SSH. El script puede recibir el usuario a traves 
+# de la opcion optativa "-u", si no se proporciona, se tomará el nombre del
+# usuario que actualmente ha ejecutado el script.
 
 if ! [[ $# > 0 ]]; then
 	echo "Uso: `basename $0` [-u usuario] (máquinas)"
@@ -26,13 +25,13 @@ fi
 
 which nmap &>/dev/null
 
-if [ $? = 1 ]; then
+if [[ $? = 1 ]]; then
 	read -p "Necesita instalar nmap para proceder [s/n]: " instalar
 	if [[ $instalar = n ]] ; then
-		exit 1
+		exit 0
 	elif [[ $instalar = s ]]; then
 		sudo apt install nmap -y 2>/dev/null
-		if [ $? != 0 ]; then
+		if [[ $? != 0 ]]; then
 			echo "No dispone de los permisos suficientes, saliendo..."
 			exit 1
 		fi
@@ -41,7 +40,6 @@ if [ $? = 1 ]; then
 		exit 1
 	fi
 fi
-
 
 for maquina in $(echo $@); do
 	ping -w 1 $maquina &>/dev/null
@@ -62,4 +60,3 @@ done
 
 exit 0
 
-#tiempoUp=$(ssh 
