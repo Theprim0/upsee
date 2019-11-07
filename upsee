@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Escribe un script que reciba por linea de comandos nombres
+# Script que reciba por linea de comandos nombres
 # o direcciones IP de servidores. Este debe mostrar UPTIME del
 # ultimo minuto para cada uno de ellos. Si no pudiera el script
 # , debe distinguir entre un error producido porque la máquina no esté
@@ -24,6 +24,25 @@ elif [[ $( echo $1) == "-u" ]]; then
 	shift 2
 fi
 
+which nmap &>/dev/null
+
+if [ $? = 1 ]; then
+	read -p "Necesita instalar nmap para proceder [s/n]: " instalar
+	if [[ $instalar = n ]] ; then
+		exit 1
+	elif [[ $instalar = s ]]; then
+		sudo apt install nmap -y 2>/dev/null
+		if [ $? != 0 ]; then
+			echo "No dispone de los permisos suficientes, saliendo..."
+			exit 1
+		fi
+	else
+		echo "Debe introducir una opcion válida"
+		exit 1
+	fi
+fi
+
+
 for maquina in $(echo $@); do
 	ping -w 1 $maquina &>/dev/null
 	if [[ $? -ne 0 ]]; then
@@ -31,10 +50,9 @@ for maquina in $(echo $@); do
 		echo "Máquina $maquina no disponible"
 		echo
 	elif [[ $(echo `nmap -sT $maquina | grep ssh | cut -d" " -f 1`) == "22/tcp" ]]; then
-		echo
 		upeo=$(ssh ${usuarioMenosU:-$(whoami)}@$maquina uptime -p)
 		echo "$maquina lleva ... $upeo"
-		
+		echo
 	else
 		echo "Máquina $maquina SSH NO DISPONIBLE"
 
@@ -42,5 +60,6 @@ for maquina in $(echo $@); do
 
 done
 
+exit 0
 
 #tiempoUp=$(ssh 
